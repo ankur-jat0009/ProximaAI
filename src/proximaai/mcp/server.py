@@ -35,7 +35,7 @@ llama_app.add_middleware(SupabaseAuthMiddleware)
 app.mount("/parse_document", llama_app)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],  # or ["*"] for all
+    allow_origins=["*"],  # Allow all origins for local development
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
