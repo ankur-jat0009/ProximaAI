@@ -45,27 +45,35 @@ class WebSearchTool(BaseTool):
             return f"Error performing search: {str(e)}"
     
     def _perform_search(self, query: str) -> List[Dict[str, Any]]:
-        """Perform the actual search (placeholder implementation)."""
-        # This is a mock implementation
-        # In production, replace with actual search API calls
-        
-        # Simulate search results
-        mock_results = [
-            {
-                "title": f"Search results for: {query}",
-                "url": f"https://example.com/search?q={quote_plus(query)}",
-                "snippet": f"Relevant information about {query} from various sources.",
-                "source": "web_search"
-            },
-            {
-                "title": f"Latest news about {query}",
-                "url": f"https://news.example.com/search?q={quote_plus(query)}",
-                "snippet": f"Recent developments and news related to {query}.",
-                "source": "news_search"
-            }
-        ]
-        
-        return mock_results
+        """Perform the actual search using Tavily."""
+        api_key = self._api_key or os.environ.get("TAVILY_API_KEY")
+        if not api_key:
+            return [{"title": "Error", "snippet": "TAVILY_API_KEY not found.", "url": ""}]
+
+        try:
+            response = requests.post(
+                "https://api.tavily.com/search",
+                json={
+                    "api_key": api_key,
+                    "query": query,
+                    "search_depth": "smart",
+                    "max_results": 5
+                }
+            )
+            response.raise_for_status()
+            data = response.json()
+            
+            results = []
+            for result in data.get("results", []):
+                results.append({
+                    "title": result.get("title"),
+                    "url": result.get("url"),
+                    "snippet": result.get("content"),
+                    "source": "tavily"
+                })
+            return results
+        except Exception as e:
+            return [{"title": "Search Error", "snippet": str(e), "url": ""}]
 
 
 class CompanyResearchTool(BaseTool):
