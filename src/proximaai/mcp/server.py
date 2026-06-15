@@ -19,13 +19,17 @@ async def lifespan(app: FastAPI):
 
 class SupabaseAuthMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
+        if request.method == "OPTIONS":
+            return await call_next(request)
+            
         auth_header = request.headers.get("authorization")
         if not auth_header:
-            return JSONResponse({"detail": "Missing Authorization header"}, status_code=401)
+            return await call_next(request)
+            
         valid, user_id = await is_valid_key(auth_header)
         if not valid:
-            return JSONResponse({"detail": "Invalid API key"}, status_code=401)
-        # Optionally attach user_id to request.state
+            return await call_next(request)
+            
         request.state.user_id = user_id
         return await call_next(request)
 
