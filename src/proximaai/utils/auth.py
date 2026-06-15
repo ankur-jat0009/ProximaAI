@@ -11,8 +11,14 @@ key: str | None = os.environ.get("SUPABASE_KEY")
 
 
 async def is_valid_key(auth_header: Any,):
+    if not auth_header:
+        return False, None
+        
     if isinstance(auth_header, bytes):
         auth_header = auth_header.decode()
+
+    if " " not in auth_header:
+        return False, None
 
     scheme, token = auth_header.split(" ")
     user: User | None = None
